@@ -1,0 +1,44 @@
+name: NPDB Download
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: "0 12 * * 1"
+
+jobs:
+  download-npdb:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install Chrome
+        uses: browser-actions/setup-chrome@v1
+
+      - name: Install ChromeDriver
+        uses: nanasess/setup-chromedriver@v2
+
+      - name: Install Python packages
+        run: pip install -r requirements.txt
+
+      - name: Run NPDB downloader
+        env:
+          NPDB_NAME: ${{ secrets.NPDB_NAME }}
+          NPDB_TITLE: ${{ secrets.NPDB_TITLE }}
+          NPDB_CITY: ${{ secrets.NPDB_CITY }}
+          NPDB_STATE: ${{ secrets.NPDB_STATE }}
+          NPDB_EMAIL: ${{ secrets.NPDB_EMAIL }}
+          NPDB_RECEIVE_UPDATES: "true"
+        run: python download_npdb.py
+
+      - name: Upload NPDB artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: npdb-download
+          path: downloads/*
